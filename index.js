@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -75,6 +75,12 @@ async function run() {
       const schedule = req.body;
       const result = await ShareGardenTip.insertOne(schedule);
       res.send(result);
+    });
+
+    app.get("/share-garden-tip/:id", async (req, res) => {
+      const id = req.params.id;
+      const tip = await ShareGardenTip.findOne({ _id: new ObjectId(id) });
+      res.send(tip);
     });
 
     app.get("/", (req, res) => {

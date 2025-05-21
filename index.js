@@ -28,15 +28,50 @@ async function run() {
       .db("gardeningDB")
       .collection("gardening");
 
+    const TopTrendingTips = client
+      .db("gardeningDB")
+      .collection("TopTrendingTips");
+
+    const ShareGardenTip = client
+      .db("gardeningDB")
+      .collection("ShareGardenTip");
+
     app.get("/gardening", async (req, res) => {
-      const result = await gardeningCollection.find().toArray();
-      res.send(result);
+      const activeGardeners = await gardeningCollection
+        .find({ status: "active" })
+        .limit(6)
+        .toArray();
+      res.send(activeGardeners);
     });
 
     app.post("/gardening", async (req, res) => {
       const gardening = req.body;
       console.log(gardening);
       const result = await gardeningCollection.insertOne(gardening);
+      res.send(result);
+    });
+
+    // top-trending-tips
+    app.get("/top-trending-tips", async (req, res) => {
+      const topTrendingTips = await TopTrendingTips.find().toArray();
+      res.send(topTrendingTips);
+    });
+
+    app.post("/top-trending-tips", async (req, res) => {
+      const gardening = req.body;
+      console.log(gardening);
+      const result = await TopTrendingTips.insertOne(gardening);
+      res.send(result);
+    });
+
+    app.get("/share-garden-tip", async (req, res) => {
+      const shareGardenTip = await ShareGardenTip.find().toArray();
+      res.send(shareGardenTip);
+    });
+
+    app.post("/share-garden-tip", async (req, res) => {
+      const schedule = req.body;
+      const result = await ShareGardenTip.insertOne(schedule);
       res.send(result);
     });
 

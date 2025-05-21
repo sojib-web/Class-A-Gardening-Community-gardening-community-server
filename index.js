@@ -65,7 +65,9 @@ async function run() {
     });
 
     app.get("/share-garden-tip", async (req, res) => {
-      const shareGardenTip = await ShareGardenTip.find().toArray();
+      const shareGardenTip = await ShareGardenTip.find({
+        availability: "Public",
+      }).toArray();
       res.send(shareGardenTip);
     });
 

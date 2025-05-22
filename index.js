@@ -65,9 +65,7 @@ async function run() {
     });
 
     app.get("/share-garden-tip", async (req, res) => {
-      const shareGardenTip = await ShareGardenTip.find({
-        availability: "Public",
-      }).toArray();
+      const shareGardenTip = await ShareGardenTip.find().toArray();
       res.send(shareGardenTip);
     });
 
@@ -81,6 +79,24 @@ async function run() {
       const id = req.params.id;
       const tip = await ShareGardenTip.findOne({ _id: new ObjectId(id) });
       res.send(tip);
+    });
+
+    app.put("/share-garden-tip/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body;
+
+      const result = await ShareGardenTip.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updatedData }
+      );
+      res.send(result);
+    });
+
+    app.delete("/share-garden-tip/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await ShareGardenTip.deleteOne(query);
+      res.send(result);
     });
 
     app.get("/", (req, res) => {

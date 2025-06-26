@@ -1,13 +1,17 @@
+// @ts-nocheck
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
-const app = express();
 require("dotenv").config();
+
+const app = express();
 const port = process.env.PORT || 3000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// MongoDB connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.sh3fzt7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -20,7 +24,6 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server
     await client.connect();
     console.log("Connected to MongoDB!");
 
@@ -36,21 +39,39 @@ async function run() {
       .db("gardeningDB")
       .collection("ShareGardenTip");
 
-    // Get all gardeners
+    // ✅ GET all gardeners
     app.get("/gardening", async (req, res) => {
       const activeGardeners = await gardeningCollection.find().toArray();
       res.send(activeGardeners);
     });
 
-    // Add a gardener
+    // ✅ GET single gardener by ID
+    app.get("/gardening/:id", async (req, res) => {
+      const id = req.params.id;
+      try {
+        const gardener = await gardeningCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        if (!gardener) {
+          return res.status(404).send({ message: "Gardener not found" });
+        }
+
+        res.send(gardener);
+      } catch (error) {
+        console.error("Error fetching gardener by ID:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // ✅ Add a gardener
     app.post("/gardening", async (req, res) => {
       const gardening = req.body;
-      console.log(gardening);
       const result = await gardeningCollection.insertOne(gardening);
       res.send(result);
     });
 
-    // Delete a gardener by id
+    // ✅ Delete a gardener by ID
     app.delete("/gardening/:id", async (req, res) => {
       const id = req.params.id;
       try {
@@ -71,41 +92,40 @@ async function run() {
       }
     });
 
-    // Get all top trending tips
+    // ✅ Get all top trending tips
     app.get("/top-trending-tips", async (req, res) => {
       const topTrendingTips = await TopTrendingTips.find().toArray();
       res.send(topTrendingTips);
     });
 
-    // Add a top trending tip
+    // ✅ Add a top trending tip
     app.post("/top-trending-tips", async (req, res) => {
-      const gardening = req.body;
-      console.log(gardening);
-      const result = await TopTrendingTips.insertOne(gardening);
+      const tip = req.body;
+      const result = await TopTrendingTips.insertOne(tip);
       res.send(result);
     });
 
-    // Get all shared garden tips
+    // ✅ Get all shared garden tips
     app.get("/share-garden-tip", async (req, res) => {
-      const shareGardenTip = await ShareGardenTip.find().toArray();
-      res.send(shareGardenTip);
+      const tips = await ShareGardenTip.find().toArray();
+      res.send(tips);
     });
 
-    // Add a shared garden tip
+    // ✅ Add a shared garden tip
     app.post("/share-garden-tip", async (req, res) => {
-      const schedule = req.body;
-      const result = await ShareGardenTip.insertOne(schedule);
+      const tip = req.body;
+      const result = await ShareGardenTip.insertOne(tip);
       res.send(result);
     });
 
-    // Get a shared garden tip by id
+    // ✅ Get a shared tip by ID
     app.get("/share-garden-tip/:id", async (req, res) => {
       const id = req.params.id;
       const tip = await ShareGardenTip.findOne({ _id: new ObjectId(id) });
       res.send(tip);
     });
 
-    // Update a shared garden tip by id
+    // ✅ Update a shared tip by ID
     app.put("/share-garden-tip/:id", async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
@@ -117,11 +137,10 @@ async function run() {
       res.send(result);
     });
 
-    // Delete a shared garden tip by id
+    // ✅ Delete a shared tip by ID
     app.delete("/share-garden-tip/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await ShareGardenTip.deleteOne(query);
+      const result = await ShareGardenTip.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
@@ -130,7 +149,7 @@ async function run() {
       res.send("Gardening server is getting hotter.!");
     });
 
-    // Start server
+    // Start the server
     app.listen(port, () => {
       console.log(`Gardening server is running on port ${port}`);
     });

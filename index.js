@@ -8,7 +8,11 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://gardening-community-client.web.app",
+  })
+);
 app.use(express.json());
 
 // MongoDB connection
@@ -24,7 +28,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     console.log("Connected to MongoDB!");
 
     const gardeningCollection = client

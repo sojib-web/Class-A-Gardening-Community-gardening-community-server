@@ -30,11 +30,9 @@ async function run() {
     const gardeningCollection = client
       .db("gardeningDB")
       .collection("gardening");
-
     const TopTrendingTips = client
       .db("gardeningDB")
       .collection("TopTrendingTips");
-
     const ShareGardenTip = client
       .db("gardeningDB")
       .collection("ShareGardenTip");
@@ -52,11 +50,9 @@ async function run() {
         const gardener = await gardeningCollection.findOne({
           _id: new ObjectId(id),
         });
-
         if (!gardener) {
           return res.status(404).send({ message: "Gardener not found" });
         }
-
         res.send(gardener);
       } catch (error) {
         console.error("Error fetching gardener by ID:", error);
@@ -67,8 +63,19 @@ async function run() {
     // ✅ Add a gardener
     app.post("/gardening", async (req, res) => {
       const gardening = req.body;
-      const result = await gardeningCollection.insertOne(gardening);
-      res.send(result);
+
+      // Simple validation
+      if (!gardening || Object.keys(gardening).length === 0) {
+        return res.status(400).send({ message: "Invalid gardener data" });
+      }
+
+      try {
+        const result = await gardeningCollection.insertOne(gardening);
+        res.send(result);
+      } catch (err) {
+        console.error("Insert error:", err);
+        res.status(500).send({ message: "Failed to add gardener" });
+      }
     });
 
     // ✅ Delete a gardener by ID
@@ -101,8 +108,16 @@ async function run() {
     // ✅ Add a top trending tip
     app.post("/top-trending-tips", async (req, res) => {
       const tip = req.body;
-      const result = await TopTrendingTips.insertOne(tip);
-      res.send(result);
+      if (!tip || Object.keys(tip).length === 0) {
+        return res.status(400).send({ message: "Invalid tip data" });
+      }
+      try {
+        const result = await TopTrendingTips.insertOne(tip);
+        res.send(result);
+      } catch (err) {
+        console.error("Insert error:", err);
+        res.status(500).send({ message: "Failed to add top trending tip" });
+      }
     });
 
     // ✅ Get all shared garden tips
@@ -114,34 +129,66 @@ async function run() {
     // ✅ Add a shared garden tip
     app.post("/share-garden-tip", async (req, res) => {
       const tip = req.body;
-      const result = await ShareGardenTip.insertOne(tip);
-      res.send(result);
+      if (!tip || Object.keys(tip).length === 0) {
+        return res.status(400).send({ message: "Invalid tip data" });
+      }
+      try {
+        const result = await ShareGardenTip.insertOne(tip);
+        res.send(result);
+      } catch (err) {
+        console.error("Insert error:", err);
+        res.status(500).send({ message: "Failed to add shared garden tip" });
+      }
     });
 
     // ✅ Get a shared tip by ID
     app.get("/share-garden-tip/:id", async (req, res) => {
       const id = req.params.id;
-      const tip = await ShareGardenTip.findOne({ _id: new ObjectId(id) });
-      res.send(tip);
+      try {
+        const tip = await ShareGardenTip.findOne({ _id: new ObjectId(id) });
+        if (!tip) {
+          return res.status(404).send({ message: "Tip not found" });
+        }
+        res.send(tip);
+      } catch (error) {
+        console.error("Error fetching tip by ID:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
     });
 
     // ✅ Update a shared tip by ID
     app.put("/share-garden-tip/:id", async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
-
-      const result = await ShareGardenTip.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: updatedData }
-      );
-      res.send(result);
+      try {
+        const result = await ShareGardenTip.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updatedData }
+        );
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating tip:", error);
+        res.status(500).send({ message: "Failed to update tip" });
+      }
     });
 
     // ✅ Delete a shared tip by ID
     app.delete("/share-garden-tip/:id", async (req, res) => {
       const id = req.params.id;
-      const result = await ShareGardenTip.deleteOne({ _id: new ObjectId(id) });
-      res.send(result);
+      try {
+        const result = await ShareGardenTip.deleteOne({
+          _id: new ObjectId(id),
+        });
+        if (result.deletedCount === 1) {
+          res.send({ success: true, message: "Tip deleted successfully" });
+        } else {
+          res.status(404).send({ success: false, message: "Tip not found" });
+        }
+      } catch (error) {
+        res
+          .status(500)
+          .send({ success: false, message: "Server error", error });
+      }
     });
 
     // Root route
